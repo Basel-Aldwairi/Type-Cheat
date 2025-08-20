@@ -23,7 +23,7 @@ def writer():
 		if item == keyboard.Key.end:
 			break
 
-	with open('output.txt', 'a', encoding='utf-8') as f:
+	with open('output.txt', 'w', encoding='utf-8') as f:
 		s = ''.join(a)
 		f.write(s)
 
