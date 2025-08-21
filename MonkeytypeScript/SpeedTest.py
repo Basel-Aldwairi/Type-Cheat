@@ -5,7 +5,7 @@ import time
 from PossibleWords import filtered_words, filtered_words_len
 import random as rn
 
-MAX_WORDS = 20
+MAX_WORDS = 25
 
 
 # original_string = 'This is a test and a very long string lets see how itll work'
@@ -16,10 +16,10 @@ for _ in range(MAX_WORDS):
 	chosen_word = (filtered_words[random_index])
 	original_string_array.append(chosen_word)
 
-
+# original_string = 'This is a test'
 original_string = ' '.join(original_string_array)
 print(Color.LIGHTBLACK_EX + original_string)
-# original_string_array = original_string.split()
+original_string_array = original_string.split()
 original_string_word_count = len(original_string_array)
 written_string = []
 original_string_length = len(original_string)
@@ -59,7 +59,7 @@ while writing:
 			written_string = []
 
 	else:
-		written_string.append(char)
+		written_string.append(char.lower())
 		index += 1
 
 
