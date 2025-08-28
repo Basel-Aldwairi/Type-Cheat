@@ -11,6 +11,6 @@ def get_text():
 	screenshot.save("screenshot.png")
 
 	text = pytesseract.image_to_string(screenshot)
-	print(text)
+	# print(text)
 	return text
 	# print('Extracted text = ',text)

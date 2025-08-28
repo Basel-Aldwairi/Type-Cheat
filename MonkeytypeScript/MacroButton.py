@@ -1,44 +1,62 @@
 import threading
 import queue
+import sys
 from pynput import keyboard
 import Macro
-
-q = queue.Queue()
-
-def writer():
-	macro = Macro.TypeMacro()
-	while True:
-		key = q.get()
-		if key == keyboard.Key.f12:
-			# macro.type_test()
-			macro.type_from_screen()
-		if key == keyboard.Key.end:
-			break
+import AutoClicker as AC
 
 
+printing_lock = threading.Lock()
+ac = AC.AutoClicker()
+macro = Macro.TypeMacro()
+
+stop_event = threading.Event()
+
+def run_in_thread(func):
+	threading.Thread(target = func, daemon=True).start()
+
+def auto_click():
+	if not ac.is_active():
+		ac.start_auto_clicker()
+	else:
+		ac.end_auto_clicker()
 
 
-def reader():
-	with keyboard.Listener(on_press=on_press, on_release=on_release) as l:
-		l.join()
+def print_from_screen():
+	if printing_lock.acquire_lock(blocking=False):
+		try:
+			print('took lock')
+			run_in_thread(macro.type_from_screen)
+		finally:
+			print('released lock')
+			printing_lock.release()
 
 
-def on_press(key):
-	try:
-		q.put(key)
-	except AttributeError:
-		print(f'Special {key} is pressed')
+
+def end_macros():
+	stop_event.set()
+	sys.exit(0)
 
 
-def on_release(key):
-	if key == keyboard.Key.end:
-		return False
-	return None
 
+hotkeys = {
+	'<ctrl>+<alt>+a' : lambda: run_in_thread(auto_click),
+	'<ctrl>+<alt>+t' : lambda: run_in_thread(print_from_screen),
+	'<ctrl>+<alt>+<end>' : lambda: end_macros()
+}
 
-re = threading.Thread(target = reader)
-wr = threading.Thread(target= writer)
-re.start()
-wr.start()
-re.join()
-wr.join()
+hotkey_objects = [
+	keyboard.HotKey(keyboard.HotKey.parse(combo),action)
+	for combo, action in hotkeys.items()
+]
+
+def for_canonical(f):
+	return lambda k: f(listener.canonical(k))
+
+with keyboard.Listener(
+	on_press=lambda k: [for_canonical(h.press)(k) for h in hotkey_objects],
+	on_release= lambda  k: [for_canonical(h.release)(k) for h in hotkey_objects]
+) as listener:
+	print('listening')
+	listener.join()
+
